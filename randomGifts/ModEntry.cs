@@ -7,8 +7,6 @@ using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using System.Linq;
 
-// TODO: Randomize the random functions more (ie. with steps taken, days passed, current day, or something)
-
 namespace randomSchedules
 {
     public class ModEntry : Mod
@@ -17,11 +15,14 @@ namespace randomSchedules
         public List<String> weekDays = new List<String>();
         public String workOutDay = "";
         Random myRand;
+        Dictionary<String, Dictionary<String, String>> allSchedules;
 
         public override void Entry(IModHelper helper)
         {
             myRand = new Random();
-            
+            // For getting a specific schedule
+            allSchedules = new Dictionary<String, Dictionary<String, String>>();
+
             this.config = this.Helper.ReadConfig<ModConfig>();
             weekDays.Add("Mon"); weekDays.Add("Tue"); weekDays.Add("Wed"); weekDays.Add("Thu"); weekDays.Add("Fri"); weekDays.Add("Sat"); weekDays.Add("Sun");
 
@@ -38,187 +39,59 @@ namespace randomSchedules
             if (config.debug)
                 this.Monitor.Log("Work out day is: " + workOutDay);
 
-            Dictionary<String, String> abbySchedule = this.generateSchedule("Abigail");
-            Dictionary<String, String> alexSchedule = this.generateSchedule("Alex");
-            Dictionary<String, String> carolineSchedule = this.generateSchedule("Caroline");
-            Dictionary<String, String> clintSchedule = this.generateSchedule("Clint");
-            Dictionary<String, String> demetriusSchedule = this.generateSchedule("Demetrius");
-            Dictionary<String, String> elliottSchedule = this.generateSchedule("Elliott");
-            Dictionary<String, String> emilySchedule = this.generateSchedule("Emily");
-            Dictionary<String, String> evelynSchedule = this.generateSchedule("Evelyn");
-            Dictionary<String, String> georgeSchedule = this.generateSchedule("George");
-            Dictionary<String, String> jasSchedule = this.generateSchedule("Jas");
-            Dictionary<String, String> jodiSchedule = this.generateSchedule("Jodi");
-            Dictionary<String, String> kentSchedule = this.generateSchedule("Kent");
-            Dictionary<String, String> leahSchedule = this.generateSchedule("Leah");
-            Dictionary<String, String> lewisSchedule = this.generateSchedule("Lewis");
-            Dictionary<String, String> linusSchedule = this.generateSchedule("Linus");
-            Dictionary<String, String> marnieSchedule = this.generateSchedule("Marnie");
-            Dictionary<String, String> maruSchedule = this.generateSchedule("Maru");
-            Dictionary<String, String> pamSchedule = this.generateSchedule("Pam");
-            Dictionary<String, String> pennySchedule = this.generateSchedule("Penny");
-            Dictionary<String, String> pierreSchedule = this.generateSchedule("Pierre");
-            Dictionary<String, String> robinSchedule = this.generateSchedule("Robin");
-            Dictionary<String, String> samSchedule = this.generateSchedule("Sam");
-            Dictionary<String, String> sebastianSchedule = this.generateSchedule("Sebastian");
-            Dictionary<String, String> shaneSchedule = this.generateSchedule("Shane");
-            Dictionary<String, String> vincentSchedule = this.generateSchedule("Vincent");
-            Dictionary<String, String> willySchedule = this.generateSchedule("Willy");
+            allSchedules.Clear();
+            Dictionary<String, String> abbySchedule = this.generateSchedule("Abigail");         allSchedules.Add("abby", abbySchedule);
+            Dictionary<String, String> alexSchedule = this.generateSchedule("Alex");            allSchedules.Add("alex", alexSchedule);
+            Dictionary<String, String> carolineSchedule = this.generateSchedule("Caroline");    allSchedules.Add("caroline", carolineSchedule);
+            Dictionary<String, String> clintSchedule = this.generateSchedule("Clint");          allSchedules.Add("clint", clintSchedule);
+            Dictionary<String, String> demetriusSchedule = this.generateSchedule("Demetrius");  allSchedules.Add("demetrius", clintSchedule);
+            Dictionary <String, String> elliottSchedule = this.generateSchedule("Elliott");     allSchedules.Add("elliott", elliottSchedule); 
+            Dictionary <String, String> emilySchedule = this.generateSchedule("Emily");         allSchedules.Add("emily", emilySchedule);
+            Dictionary <String, String> evelynSchedule = this.generateSchedule("Evelyn");       allSchedules.Add("evelyn", evelynSchedule);
+            Dictionary<String, String> georgeSchedule = this.generateSchedule("George");        allSchedules.Add("george", georgeSchedule);
+            Dictionary<String, String> jasSchedule = this.generateSchedule("Jas");              allSchedules.Add("jas", jasSchedule);
+            Dictionary <String, String> jodiSchedule = this.generateSchedule("Jodi");           allSchedules.Add("jodi", jodiSchedule);
+            Dictionary <String, String> kentSchedule = this.generateSchedule("Kent");           allSchedules.Add("kent", kentSchedule);
+            Dictionary <String, String> leahSchedule = this.generateSchedule("Leah");           allSchedules.Add("leah", leahSchedule);
+            Dictionary <String, String> lewisSchedule = this.generateSchedule("Lewis");         allSchedules.Add("lewis", lewisSchedule);
+            Dictionary <String, String> linusSchedule = this.generateSchedule("Linus");         allSchedules.Add("linus", linusSchedule);
+            Dictionary <String, String> marnieSchedule = this.generateSchedule("Marnie");       allSchedules.Add("marnie", marnieSchedule);
+            Dictionary <String, String> maruSchedule = this.generateSchedule("Maru");           allSchedules.Add("maru", maruSchedule);
+            Dictionary <String, String> pamSchedule = this.generateSchedule("Pam");             allSchedules.Add("pam", pamSchedule);
+            Dictionary <String, String> pennySchedule = this.generateSchedule("Penny");         allSchedules.Add("penny", pennySchedule);
+            Dictionary <String, String> pierreSchedule = this.generateSchedule("Pierre");       allSchedules.Add("pierre", pierreSchedule);
+            Dictionary <String, String> robinSchedule = this.generateSchedule("Robin");         allSchedules.Add("robin", robinSchedule);
+            Dictionary <String, String> samSchedule = this.generateSchedule("Sam");             allSchedules.Add("sam", samSchedule);
+            Dictionary <String, String> sebastianSchedule = this.generateSchedule("Sebastian"); allSchedules.Add("sebastian", sebastianSchedule);
+            Dictionary <String, String> shaneSchedule = this.generateSchedule("Shane");         allSchedules.Add("shane", shaneSchedule);
+            Dictionary <String, String> vincentSchedule = this.generateSchedule("Vincent");     allSchedules.Add("vincent", vincentSchedule);
+            Dictionary <String, String> willySchedule = this.generateSchedule("Willy");         allSchedules.Add("willy", willySchedule);
 
+            // Console command for displaying a specific schedule
+            Helper.ConsoleCommands.Add("schedule", "Shows the respective NPC's schedule.\n\nUsage: schedule <npcname>\n- npcname: Name of the NPC.", this.showSchedule);
+        }
 
-            /* this.Monitor.Log("Abby's schedule: ");
+        // TODO: Display schedule in a more readable format
+        private void showSchedule(string command, string[] args)
+        {
+            this.Monitor.Log(args[0] + "'s schedule:");
 
-             foreach(KeyValuePair<String, String> kvp in abbySchedule)            
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+            Dictionary<String, String> theSched = null;
 
-             this.Monitor.Log("\nAlex' schedule: ");
+            try
+            {
+                theSched = allSchedules[args[0].ToLower()];
 
-             foreach (KeyValuePair<String, String> kvp in alexSchedule)
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-             this.Monitor.Log("\nCaroline's schedule: ");
-
-             foreach (KeyValuePair<String, String> kvp in carolineSchedule)
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-             this.Monitor.Log("\nClint's schedule: ");
-
-             foreach (KeyValuePair<String, String> kvp in clintSchedule)
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-             this.Monitor.Log("\nDemetrius' schedule: ");
-
-             foreach (KeyValuePair<String, String> kvp in demetriusSchedule)
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-             this.Monitor.Log("\nElliot's schedule: ");
-
-             foreach (KeyValuePair<String, String> kvp in elliottSchedule)
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-             this.Monitor.Log("\nEmily's schedule: ");
-
-             foreach (KeyValuePair<String, String> kvp in emilySchedule)
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-             this.Monitor.Log("\nEvelyn's schedule: ");
-
-             foreach (KeyValuePair<String, String> kvp in evelynSchedule)
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-             this.Monitor.Log("\nGeorge's schedule: ");
-
-             foreach (KeyValuePair<String, String> kvp in georgeSchedule)
-                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nJas' schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in jasSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nJodi's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in jodiSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nKent's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in kentSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nLeah's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in leahSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nLewis' schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in lewisSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nLinus' schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in linusSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nMarnie's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in marnieSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nMaru's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in maruSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nPam's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in pamSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nPenny's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in pennySchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nPierre's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in pierreSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nRobin's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in robinSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nSam's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in samSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nSebastian's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in sebastianSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nShane's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in shaneSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nVincent's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in vincentSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-
-            this.Monitor.Log("\nWilly's schedule: ");
-
-            foreach (KeyValuePair<String, String> kvp in willySchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);*/
-
-            /*
-                        this.Monitor.Log("All schedules: ");
-
-                        foreach(NPC npc in allNPCs)
-                        {
-                            this.Monitor.Log(npc.Name + "'s schedule: ");
-
-                            if (npc.Schedule != null)
-                            {
-                                foreach (KeyValuePair<int, SchedulePathDescription> kvp in npc.Schedule)
-                                {
-                                    this.Monitor.Log(kvp.Key + " --- " + kvp.Value.ToString());
-                                }
-                            }
-                            else
-                                this.Monitor.Log("Don't do shit");
-
-                            this.Monitor.Log("\n\n");
-                        }*/
+                foreach (KeyValuePair<String, String> kvp in theSched)
+                    this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+            }
+            catch(KeyNotFoundException e)
+            { 
+                this.Monitor.Log("There is no NPC named " + args[0] + "!");
+            }
         }
 
         // Generates a complete schedule for a character
-        // TODO: Start day, end day
         private Dictionary<String, String> generateSchedule(String name)
         {
             Dictionary<String, String> theSchedule = new Dictionary<String, String>();           
@@ -260,8 +133,6 @@ namespace randomSchedules
                 }                
             }
 
-            // TODO?: In addition, generate a couple of random dates (1-28) and season dates (winter_12, fall_Mon, ...) .. or is that even necessary?               
-            // -> for now just randomize hospital appointments
             // TODO: Just generate this once, not every time schedules get randomized - same for workout day (?)
 
             int dow = myRand.Next(1, 28);
@@ -286,9 +157,9 @@ namespace randomSchedules
             // TODO: Make sure no two people have the same hospital day
             String hospitalDay = season + "_" + dow;
 
-            // TODO: Preserve marriage schedules and special schedules
             // TODO: Presence at the beach market
             // TODO: rain schedules
+            // TODO: JojaMart / CommunityCenter
             switch(name)
             {
                 case "Abigail":
@@ -444,9 +315,6 @@ namespace randomSchedules
             else
                 dayEvents = noOfEvents;
 
-            //if (config.debug)
-                //this.Monitor.Log("Character will have " + dayEvents + " different events.");
-
             // Now generate different times, locations, positions and directions
             List<int> times = new List<int>();            
             List<string> locations = new List<string>();
@@ -457,8 +325,6 @@ namespace randomSchedules
             List<String> allLocs = new List<string>();
             foreach(GameLocation loc in Game1.locations)
                 allLocs.Add(loc.Name);
-
-            //this.Monitor.Log("Size of Game1.locations: " + allLocs.Count + " (before removing)");
 
             SDate date = SDate.Now();
             SDate earthquake = new SDate(3, "summer", 1);
@@ -490,13 +356,13 @@ namespace randomSchedules
                     case "BugLand":
                     case "Desert": // TODO: Only for Sandy, maybe Emily?
                     case "SandyHouse": // TODO: Only for Emily, very low chance for others?
-                    case "WizardHouseBasement": // TODO: Low Wizard chance?
+                    case "WizardHouseBasement": 
                     case "WitchSwamp":
                     case "WitchHut":
                     case "WitchWarpCave":
                     case "Greenhouse":
                     case "SkullCave":
-                    case "Tunnel": // TODO: Low chance for adventurous guys?
+                    case "Tunnel":
                     case "Trailer_Big": // TODO: Check for Pam upgrade?
                     case "Woods":
                     case "CommunityCenter": // TODO: Check if community center is restored
@@ -705,17 +571,6 @@ namespace randomSchedules
 
             // TODO: Make Jodi stay in her house the majority of times (akin to Vanilla)?
 
-            //this.Monitor.Log("Size of Game1.locations: " + allLocs.Count + " (after removing)");
-
-            /*  if(config.debug)
-              {
-                  this.Monitor.Log("Possible locations: ");
-
-                  foreach (GameLocation l in allLocs)
-                      this.Monitor.Log(l.Name);
-              }*/
-
-
             // TODO: Make sure times are properly spaced out  
             for (int i=0; i<dayEvents; i++)
             {
@@ -725,7 +580,6 @@ namespace randomSchedules
                 if (startTime == -1 || endTime == -1) {
                     // Make sure that the first time is between 7 and 10
                     if (i == 0)
-                        //times.Add(myRand.Next(7, 10));
                         theTime = myRand.Next(7, 10);
                     else
                     {
@@ -745,7 +599,6 @@ namespace randomSchedules
                                 t = myRand.Next(times.ElementAt(0) + 1, 23);
                         }
 
-                        //times.Add(t);
                         theTime = t;
                     }
                 }
@@ -757,16 +610,13 @@ namespace randomSchedules
                     while (times.Contains(t))
                         t = myRand.Next(startTime, endTime);
 
-                    //times.Add(t);
                     theTime = t;
                 }
 
-                //locations.Add(allLocs.ElementAt(myRand.Next(0, allLocs.Count)).Name);
                 theLoc = allLocs.ElementAt(myRand.Next(0, allLocs.Count));
 
                 // TODO: Remove time/location combinations that are not plausible and configure per-character plausible locations
                 // TODO: Combine locations and follow-up locations -> bathhouse entry -> bathhouse locker -> bathhouse pool
-
                 times.Add(theTime);
                 locations.Add(theLoc);
                 positions.Add(getPositionOnMap(locations.ElementAt(i)));
@@ -1054,26 +904,6 @@ namespace randomSchedules
 
                 if (i != (dayEvents - 1))
                     theSchedule += "/";
-            }
-
-            
-            if (config.debug) {
-                /*this.Monitor.Log("Times are: ");
-                foreach(int i in times)
-                    this.Monitor.Log(i.ToString());            
-            
-                this.Monitor.Log("Locations are: ");
-                foreach(string s in locations)
-                    this.Monitor.Log(s);
-
-                this.Monitor.Log("Positions are: ");
-                foreach (Vector2 v in positions)
-                    this.Monitor.Log(v.X + "/" + v.Y);
-
-                this.Monitor.Log("Directions are: ");
-                foreach (int i in directions)
-                    this.Monitor.Log(i.ToString());
-                this.Monitor.Log("One day's schedule: " + theSchedule);*/
             }
 
             return theSchedule;
