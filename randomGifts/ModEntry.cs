@@ -16,21 +16,24 @@ namespace randomSchedules
         private ModConfig config;
         public List<String> weekDays = new List<String>();
         public String workOutDay = "";
+        Random myRand;
 
         public override void Entry(IModHelper helper)
         {
+            myRand = new Random();
+            
             this.config = this.Helper.ReadConfig<ModConfig>();
             weekDays.Add("Mon"); weekDays.Add("Tue"); weekDays.Add("Wed"); weekDays.Add("Thu"); weekDays.Add("Fri"); weekDays.Add("Sat"); weekDays.Add("Sun");
 
             TimeEvents.AfterDayStarted += AfterDayStarted;            
         }
-
+        
         private void AfterDayStarted(object sender, EventArgs e)
         {
             DisposableList<NPC> allNPCs = Utility.getAllCharacters();
             
             // Generate work out day, everyone's favorite!
-            workOutDay = weekDays.ElementAt(Game1.random.Next(0, 6));
+            workOutDay = weekDays.ElementAt(myRand.Next(0, 6));
 
             if (config.debug)
                 this.Monitor.Log("Work out day is: " + workOutDay);
@@ -53,6 +56,15 @@ namespace randomSchedules
             Dictionary<String, String> marnieSchedule = this.generateSchedule("Marnie");
             Dictionary<String, String> maruSchedule = this.generateSchedule("Maru");
             Dictionary<String, String> pamSchedule = this.generateSchedule("Pam");
+            Dictionary<String, String> pennySchedule = this.generateSchedule("Penny");
+            Dictionary<String, String> pierreSchedule = this.generateSchedule("Pierre");
+            Dictionary<String, String> robinSchedule = this.generateSchedule("Robin");
+            Dictionary<String, String> samSchedule = this.generateSchedule("Sam");
+            Dictionary<String, String> sebastianSchedule = this.generateSchedule("Sebastian");
+            Dictionary<String, String> shaneSchedule = this.generateSchedule("Shane");
+            Dictionary<String, String> vincentSchedule = this.generateSchedule("Vincent");
+            Dictionary<String, String> willySchedule = this.generateSchedule("Willy");
+
 
             /* this.Monitor.Log("Abby's schedule: ");
 
@@ -137,12 +149,52 @@ namespace randomSchedules
             this.Monitor.Log("\nMaru's schedule: ");
 
             foreach (KeyValuePair<String, String> kvp in maruSchedule)
-                this.Monitor.Log(kvp.Key + ": " + kvp.Value);*/
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
 
             this.Monitor.Log("\nPam's schedule: ");
 
             foreach (KeyValuePair<String, String> kvp in pamSchedule)
                 this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+
+            this.Monitor.Log("\nPenny's schedule: ");
+
+            foreach (KeyValuePair<String, String> kvp in pennySchedule)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+
+            this.Monitor.Log("\nPierre's schedule: ");
+
+            foreach (KeyValuePair<String, String> kvp in pierreSchedule)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+
+            this.Monitor.Log("\nRobin's schedule: ");
+
+            foreach (KeyValuePair<String, String> kvp in robinSchedule)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+
+            this.Monitor.Log("\nSam's schedule: ");
+
+            foreach (KeyValuePair<String, String> kvp in samSchedule)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+
+            this.Monitor.Log("\nSebastian's schedule: ");
+
+            foreach (KeyValuePair<String, String> kvp in sebastianSchedule)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+
+            this.Monitor.Log("\nShane's schedule: ");
+
+            foreach (KeyValuePair<String, String> kvp in shaneSchedule)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+
+            this.Monitor.Log("\nVincent's schedule: ");
+
+            foreach (KeyValuePair<String, String> kvp in vincentSchedule)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+
+            this.Monitor.Log("\nWilly's schedule: ");
+
+            foreach (KeyValuePair<String, String> kvp in willySchedule)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value);*/
 
             /*
                         this.Monitor.Log("All schedules: ");
@@ -179,7 +231,7 @@ namespace randomSchedules
                 switch(name)
                 {
                     case "Clint":
-                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Clint", 16, 23, Game1.random.Next(1, 3)));
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Clint", 16, 23, myRand.Next(1, 3)));
                         break;
 
                     case "Marnie":
@@ -187,7 +239,19 @@ namespace randomSchedules
                         if (weekDays.ElementAt(i).Equals("Mon") || weekDays.ElementAt(i).Equals("Thu"))
                             theSchedule.Add(weekDays.ElementAt(i), generateDay("Marnie"));
                         else
-                            theSchedule.Add(weekDays.ElementAt(i), generateDay("Marnie", 16, 23, Game1.random.Next(1, 3)));
+                            theSchedule.Add(weekDays.ElementAt(i), generateDay("Marnie", 16, 23, myRand.Next(1, 3)));
+                        break;
+
+                    case "Pierre":
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Pierre", 17, 23, myRand.Next(1, 3)));
+                        break;
+
+                    case "Robin":
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Robin", 17, 23, myRand.Next(1, 3)));
+                        break;
+
+                    case "Willy":
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Willy", 17, 23, myRand.Next(1, 3)));
                         break;
 
                     default:
@@ -198,10 +262,11 @@ namespace randomSchedules
 
             // TODO?: In addition, generate a couple of random dates (1-28) and season dates (winter_12, fall_Mon, ...) .. or is that even necessary?               
             // -> for now just randomize hospital appointments
+            // TODO: Just generate this once, not every time schedules get randomized - same for workout day (?)
 
-            int dow = Game1.random.Next(1, 28);
+            int dow = myRand.Next(1, 28);
             String season = "";
-            int s = Game1.random.Next(1, 4);
+            int s = myRand.Next(1, 4);
 
             switch(s) {
                 case 1:
@@ -318,6 +383,43 @@ namespace randomSchedules
                     theSchedule.Add(hospitalDay, "800 Trailer 15 4 2 pam_sit_down/1130 Hospital 4 17 2 pam_sit_down \"Strings\\schedules\\Pam:spring_25.000\"/1330 Hospital 4 6 1 \"Strings\\schedules\\Pam:spring_25.001\"/1600 Saloon 7 18 1/2400 Trailer 15 4 2 pam_sit_down");
                     theSchedule.Add("bus", "800 Trailer 15 4 2 pam_sit_down/830 BusStop 11 10 2/1700 Saloon 7 18 1/2400 Trailer 15 4 2 pam_sit_down");
                     break;
+
+                case "Penny":
+                    theSchedule.Add(hospitalDay, "900 Trailer 1 8 0 \"Strings\\schedules\\Penny:winter_4.000\"/1130 Hospital 4 17 2 penny_sit_down/1330 Hospital 4 6 1 \"Strings\\schedules\\Penny:winter_4.001\"/1600 Town 75 52 2 penny_sit_down/1900 Trailer 12 7 0 penny_dishes/2100 Trailer 4 9 1");
+                    theSchedule.Add("marriageJob", "830 ArchaeologyHouse 17 9 2 penny_read \"Strings\\schedules\\Penny:marriageJob.000\"/1400 Town 88 100 2/1620 Town 17 90 3 penny_wave_left/1750 Forest 92 20 3 penny_wave_left/1830 BusStop -1 23 3");
+                    theSchedule.Add("marriage_Mon", "830 SeedShop 2 26 2 \"Strings\\schedules\\Penny:marriage_Mon.000\"/1100 SeedShop 5 19 0 \"Strings\\schedules\\Penny:marriage_Mon.001\"/1130 Town 35 89 2 penny_read/1600 Town 44 77 2 penny_sit_down \"Strings\\schedules\\Penny:marriage_Mon.002\"/1810 BusStop -1 23 3");
+                    break;
+
+                case "Robin":
+                    theSchedule.Remove(workOutDay);
+                    theSchedule.Add(workOutDay, "930 SeedShop 27 18 0/1300 SeedShop 27 22 2 robin_exercise/1600 SeedShop 24 16 0 \"Strings\\schedules\\Robin:Tue.000\"/1800 ScienceHouse 16 5 0/2100 ScienceHouse 21 4 1");
+                    theSchedule.Add(hospitalDay, "700 ScienceHouse 8 18 2/800 Hospital 12 14 0 \"Strings\\schedules\\Robin:summer_18.000\"/1330 Hospital 4 6 1 \"Strings\\schedules\\Robin:summer_18.001\"/1600 ScienceHouse 16 5 0/2100 ScienceHouse 21 4 1");
+                    break;
+
+                case "Sam":
+                    theSchedule.Add("marriage_Mon", "800 SamHouse 8 5 3 \"Strings\\schedules\\Sam:marriage_Mon.000\"/1100 SamHouse 3 13 2 \"Strings\\schedules\\Sam:marriage_Mon.001\"/1500 BusStop -1 23 3");
+                    theSchedule.Add("marriage_Fri", "800 SamHouse 8 5 3 \"Strings\\schedules\\Sam:marriage_Fri.000\"/1100 Town 43 79 2 sam_skateboarding/1500 Saloon 36 21 3 sam_pool \"Strings\\schedules\\Sam:marriage_Fri.001\"/2100 BusStop -1 23 3");
+                    theSchedule.Add(hospitalDay, "1000 SamHouse 15 13 0 \"Strings\\schedules\\Sam:fall_11.000\"/1130 Hospital 14 15 3 sam_gameboy/1330 Hospital 4 6 1 \"Strings\\schedules\\Sam:fall_11.001\"/1600 Town 11 94 2 \"Strings\\schedules\\Sam:fall_11.002\"/2100 SamHouse 22 13 1");
+                    break;
+
+                case "Sebastian":
+                    theSchedule.Add("marriage_Mon", "830 Mountain 58 35 1 \"Strings\\schedules\\Sebastian:marriage_Mon.000\"/1300 ScienceHouse 6 20 0 \"Strings\\schedules\\Sebastian:marriage_Mon.001\"/1700 BusStop -1 23 3");
+                    theSchedule.Add("marriage_Fri", "830 Beach 12 39 2 \"Strings\\schedules\\Sebastian:marriage_Fri.000\"/1500 Saloon 42 21 3 \"Strings\\schedules\\Sebastian:marriage_Fri.001\"/2110 BusStop -1 23 3");
+                    theSchedule.Add(hospitalDay, "900 SebastianRoom 10 7 1 \"Strings\\schedules\\Sebastian:summer_4.000\"/1000 Hospital 15 16 3 sebastian_cardsLeft/1330 Hospital 4 6 1 \"Strings\\schedules\\Sebastian:summer_4.001\"/1600 SebastianRoom 11 9 1");
+                    break;
+
+                case "Shane":
+                    theSchedule.Add("marriage_Mon", "830 AnimalShop 16 13 2 \"Strings\\schedules\\Shane:marriage_Mon.000\"/1100 Forest 37 10 2 \"Strings\\schedules\\Shane:marriage_Mon.001\"/1700 BusStop -1 23 3");
+                    theSchedule.Add("marriage_Fri", "830 Town 33 101 2 \"Strings\\schedules\\Shane:marriage_Fri.000\"/1300 SeedShop 2 26 2 \"Strings\\schedules\\Shane:marriage_Fri.001\"/1700 Saloon 21 17 2 shane_drink \"Strings\\schedules\\Shane:marriage_Fri.002\"/2200 BusStop -1 23 3");
+                    break;
+
+                case "Vincent":
+                    theSchedule.Add(hospitalDay, "900 SamHouse 4 8 0 \"Strings\\schedules\\Vincent:spring_11.000\"/1130 Hospital 12 14 0 \"Strings\\schedules\\Vincent:spring_11.001\"/1330 Hospital 4 6 1 \"Strings\\schedules\\Vincent:spring_11.002\"/1600 SamHouse 11 22 2 vincent_play/2000 SamHouse 8 22 3");
+                    break;
+
+                case "Willy":
+                    theSchedule.Add(hospitalDay, "610 Beach 38 36 2 dick_fish/850 FishShop 5 4 2 \"Strings\\schedules\\Willy:spring_9.000\"/1010 Hospital 12 14 0 \"Strings\\schedules\\Willy:spring_9.001\"/1330 Hospital 4 6 1 \"Strings\\schedules\\Willy:spring_9.002\"/1600 Saloon 17 22 2 \"Strings\\schedules\\Willy:spring_9.003\"/2320 FishShop 4 4 2");
+                    break;
             }
 
             return theSchedule;            
@@ -336,9 +438,9 @@ namespace randomSchedules
             // First decide how many different elements the day's schedule should have
             int dayEvents;
 
-            // TODO: Just do noOfEvents = Game1.random.Next(2, 5) in the constructor
+            // TODO: Just do noOfEvents = myRand.Next(2, 5) in the constructor
             if (noOfEvents == -1)
-                dayEvents = Game1.random.Next(2, 5);
+                dayEvents = myRand.Next(2, 5);
             else
                 dayEvents = noOfEvents;
 
@@ -623,24 +725,24 @@ namespace randomSchedules
                 if (startTime == -1 || endTime == -1) {
                     // Make sure that the first time is between 7 and 10
                     if (i == 0)
-                        //times.Add(Game1.random.Next(7, 10));
-                        theTime = Game1.random.Next(7, 10);
+                        //times.Add(myRand.Next(7, 10));
+                        theTime = myRand.Next(7, 10);
                     else
                     {
                         int t = 0;
 
                         /*if (name.Equals("Evelyn"))
-                            t = Game1.random.Next(times.ElementAt(0) + 1, 22);
+                            t = myRand.Next(times.ElementAt(0) + 1, 22);
                         else*/
-                            t = Game1.random.Next(times.ElementAt(0) + 1, 23);
+                            t = myRand.Next(times.ElementAt(0) + 1, 23);
 
                         // Do not add duplicate times
                         while (times.Contains(t))
                         {
                            /* if (name.Equals("Evelyn"))
-                                t = Game1.random.Next(times.ElementAt(0) + 1, 22);
+                                t = myRand.Next(times.ElementAt(0) + 1, 22);
                             else*/
-                                t = Game1.random.Next(times.ElementAt(0) + 1, 23);
+                                t = myRand.Next(times.ElementAt(0) + 1, 23);
                         }
 
                         //times.Add(t);
@@ -649,18 +751,18 @@ namespace randomSchedules
                 }
                 else
                 {
-                    int t = Game1.random.Next(startTime, endTime);
+                    int t = myRand.Next(startTime, endTime);
 
                     // Do not add duplicate times
                     while (times.Contains(t))
-                        t = Game1.random.Next(startTime, endTime);
+                        t = myRand.Next(startTime, endTime);
 
                     //times.Add(t);
                     theTime = t;
                 }
 
-                //locations.Add(allLocs.ElementAt(Game1.random.Next(0, allLocs.Count)).Name);
-                theLoc = allLocs.ElementAt(Game1.random.Next(0, allLocs.Count));
+                //locations.Add(allLocs.ElementAt(myRand.Next(0, allLocs.Count)).Name);
+                theLoc = allLocs.ElementAt(myRand.Next(0, allLocs.Count));
 
                 // TODO: Remove time/location combinations that are not plausible and configure per-character plausible locations
                 // TODO: Combine locations and follow-up locations -> bathhouse entry -> bathhouse locker -> bathhouse pool
@@ -668,7 +770,7 @@ namespace randomSchedules
                 times.Add(theTime);
                 locations.Add(theLoc);
                 positions.Add(getPositionOnMap(locations.ElementAt(i)));
-                directions.Add(Game1.random.Next(0, 4));
+                directions.Add(myRand.Next(0, 4));
             }
 
             // Sort the times in ascending order
@@ -685,6 +787,18 @@ namespace randomSchedules
                     if (startTime > -1)
                         theSchedule += "830 AnimalShop 17 5 0/850 AnimalShop 12 14 2/";
                     break;
+
+                case "Pierre":
+                    theSchedule += "700 SeedShop 10 20 0/830 SeedShop 4 17 2/";
+                    break;
+
+                case "Robin":
+                    theSchedule += "800 ScienceHouse 8 18 2/";
+                    break;
+
+                case "Willy":
+                    theSchedule += "610 Beach 38 36 2 dick_fish/850 FishShop 5 4 2/";
+                    break;
             }
 
             // Pierce together today's events
@@ -695,8 +809,8 @@ namespace randomSchedules
                 // TODO: bool isOutside = isLocationOutside(locations.ElementAt(i)); --> for cross checking animations like football/flute etc
 
                 // Sometimes add an animation
-                int animChance = Game1.random.Next(1, 100);
-                int sleepTime = Game1.random.Next(times.ElementAt(times.Count - 1)+1, 24);                
+                int animChance = myRand.Next(1, 100);
+                int sleepTime = myRand.Next(times.ElementAt(times.Count - 1)+1, 24);                
 
                 switch (name)
                 {
@@ -714,7 +828,7 @@ namespace randomSchedules
                         break;
 
                     case "Alex":
-                        if (animChance <= 11)
+                        if ((locations.ElementAt(i).Equals("Town") || locations.ElementAt(i).Equals("Beach") || locations.ElementAt(i).Equals("Mountain") || locations.ElementAt(i).Equals("Forest") || locations.ElementAt(i).Equals("BusStop") || locations.ElementAt(i).Equals("Railroad") || locations.ElementAt(i).Equals("Backwoods")) && animChance <= 35)
                             theSchedule += " alex_football";
                         else if (animChance >= 86)
                             theSchedule += " alex_lift_weights";
@@ -750,10 +864,11 @@ namespace randomSchedules
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 ScienceHouse 19 4 11";
                         break;
-
-                        // TODO: _drink animation (Saloon)
+                        
                     case "Elliott":
-                        if (animChance <= 5)
+                        if (locations.ElementAt(i).Equals("Saloon") && animChance >= 75)
+                            theSchedule += " elliott_drink";
+                        else if (animChance <= 5)
                             theSchedule += " elliott_read";
 
                         if (i == (dayEvents - 1))
@@ -767,7 +882,7 @@ namespace randomSchedules
 
                     case "Evelyn":
                         // TODO: Sleep times
-                        //sleepTime = Game1.random.Next(times.ElementAt(times.Count - 1) + 1, 22);
+                        //sleepTime = myRand.Next(times.ElementAt(times.Count - 1) + 1, 22);
 
                         if (animChance <= 10)
                             theSchedule += " evelyn_sit_left"; // TODO: Check for direction
@@ -855,12 +970,86 @@ namespace randomSchedules
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 ScienceHouse 2 4 3";
                         break;
-
+                    
+                    // TODO: Testen ob Trailer reicht mit Pam's Haus
                     case "Pam":
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 Trailer 15 4 2 pam_sit_down";
                         break;
 
+                    case "Penny":
+                        // TODO: penny_dishes, penny_sit_down
+                        if (animChance <= 5)
+                            theSchedule += " penny_read";
+
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 Trailer 4 9 1";
+                        break;
+
+                    case "Pierre":
+                        // TODO: Something interesting
+
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 SeedShop 24 4 1";
+                        break;
+
+                    case "Robin":
+                        // TODO: Something interesting
+
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 ScienceHouse 21 4 1";
+                        break;
+
+                    // TODO: Joja Mart work
+                    case "Sam":
+                        if (animChance >= 90)
+                            theSchedule += " sam_gameboy";
+                        else if (locations.ElementAt(i).Equals("SamHouse") && animChance <= 50)
+                            theSchedule += " sam_guitar";
+                        else if (locations.ElementAt(i).Equals("Town") && animChance >= 60 && animChance <= 90)
+                            theSchedule += " sam_skateboarding";
+
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 SamHouse 22 13 1";
+                        break;
+
+                    case "Sebastian":
+                        // TODO: Make Sebastian prefer his room
+                        // TODO: in room sebastian_computer
+                        if((locations.ElementAt(i).Equals("Town") || locations.ElementAt(i).Equals("Saloon") || locations.ElementAt(i).Equals("Beach") || locations.ElementAt(i).Equals("Mountain") || locations.ElementAt(i).Equals("Forest") || locations.ElementAt(i).Equals("BusStop") || locations.ElementAt(i).Equals("Railroad") || locations.ElementAt(i).Equals("Backwoods")) && animChance <= 15)
+                            theSchedule += " sebastian_smoking";
+
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 SebastianRoom 11 9 1";
+
+                        break;
+
+                    case "Shane":
+                        // TODO: Joja Mart work
+                        // TODO: don't play drink animation after his final heart event
+                        if (locations.ElementAt(i).Equals("Saloon") && animChance >= 20)
+                            theSchedule += " shane_drink";
+
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 AnimalShop 27 4 1";
+                        break;
+
+                    case "Vincent":
+                        if (locations.ElementAt(i).Equals("SamHouse") && animChance <= 40)
+                            theSchedule += " vincent_play";
+                        else if (locations.ElementAt(i).Equals("Beach") && animChance >= 50)
+                            theSchedule += " vincent_beach";
+
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 SamHouse 8 22 3";
+                        break;
+
+                    case "Willy":
+                        // TODO: Town/Forest fishing
+
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 FishShop 4 4 2";
+                        break;
                 }
 
                 if (i != (dayEvents - 1))
