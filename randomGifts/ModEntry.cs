@@ -9,6 +9,10 @@ using System.Linq;
 
 namespace randomSchedules
 {
+    // TODO: Actually add the schedules to the game
+    // TODO: Save schedules to json files and replace them with content patcher each week -- only for beta / SMAPI 2.8 atm
+
+
     public class ModEntry : Mod
     {
         private ModConfig config;
@@ -26,9 +30,28 @@ namespace randomSchedules
             this.config = this.Helper.ReadConfig<ModConfig>();
             weekDays.Add("Mon"); weekDays.Add("Tue"); weekDays.Add("Wed"); weekDays.Add("Thu"); weekDays.Add("Fri"); weekDays.Add("Sat"); weekDays.Add("Sun");
 
-            TimeEvents.AfterDayStarted += AfterDayStarted;            
+            // Editor for schedule files
+            helper.Content.AssetEditors.Add(new scheduleEditor(this, this.Monitor));
+
+            TimeEvents.AfterDayStarted += AfterDayStarted;
+
+            // Console command for displaying a specific schedule            
+            Helper.ConsoleCommands.Add("get_schedule", "Shows the respective NPC's actual schedule for the day of month.\n\nUsage: get_schedule <npcname> <dayofmonth>\n- npcname: Name of the NPC\n- dayofmonth: The day of month.", this.getSchedule);                        
         }
-        
+
+        private void getSchedule(string command, string[] args)
+        {
+            String npc = args[0];
+            int dom = int.Parse(args[1]);
+
+            Dictionary<int, SchedulePathDescription> theSched = Game1.getCharacterFromName(npc, true).getSchedule(dom);
+
+            this.Monitor.Log(npc + "'s actual schedule:");
+
+            foreach (KeyValuePair<int, SchedulePathDescription> kvp in theSched)
+                this.Monitor.Log(kvp.Key + ": " + kvp.Value.ToString());
+        }
+
         private void AfterDayStarted(object sender, EventArgs e)
         {
             DisposableList<NPC> allNPCs = Utility.getAllCharacters();
@@ -39,60 +62,15 @@ namespace randomSchedules
             if (config.debug)
                 this.Monitor.Log("Work out day is: " + workOutDay);
 
-            allSchedules.Clear();
-            Dictionary<String, String> abbySchedule = this.generateSchedule("Abigail");         allSchedules.Add("abby", abbySchedule);
-            Dictionary<String, String> alexSchedule = this.generateSchedule("Alex");            allSchedules.Add("alex", alexSchedule);
-            Dictionary<String, String> carolineSchedule = this.generateSchedule("Caroline");    allSchedules.Add("caroline", carolineSchedule);
-            Dictionary<String, String> clintSchedule = this.generateSchedule("Clint");          allSchedules.Add("clint", clintSchedule);
-            Dictionary<String, String> demetriusSchedule = this.generateSchedule("Demetrius");  allSchedules.Add("demetrius", clintSchedule);
-            Dictionary <String, String> elliottSchedule = this.generateSchedule("Elliott");     allSchedules.Add("elliott", elliottSchedule); 
-            Dictionary <String, String> emilySchedule = this.generateSchedule("Emily");         allSchedules.Add("emily", emilySchedule);
-            Dictionary <String, String> evelynSchedule = this.generateSchedule("Evelyn");       allSchedules.Add("evelyn", evelynSchedule);
-            Dictionary<String, String> georgeSchedule = this.generateSchedule("George");        allSchedules.Add("george", georgeSchedule);
-            Dictionary<String, String> jasSchedule = this.generateSchedule("Jas");              allSchedules.Add("jas", jasSchedule);
-            Dictionary <String, String> jodiSchedule = this.generateSchedule("Jodi");           allSchedules.Add("jodi", jodiSchedule);
-            Dictionary <String, String> kentSchedule = this.generateSchedule("Kent");           allSchedules.Add("kent", kentSchedule);
-            Dictionary <String, String> leahSchedule = this.generateSchedule("Leah");           allSchedules.Add("leah", leahSchedule);
-            Dictionary <String, String> lewisSchedule = this.generateSchedule("Lewis");         allSchedules.Add("lewis", lewisSchedule);
-            Dictionary <String, String> linusSchedule = this.generateSchedule("Linus");         allSchedules.Add("linus", linusSchedule);
-            Dictionary <String, String> marnieSchedule = this.generateSchedule("Marnie");       allSchedules.Add("marnie", marnieSchedule);
-            Dictionary <String, String> maruSchedule = this.generateSchedule("Maru");           allSchedules.Add("maru", maruSchedule);
-            Dictionary <String, String> pamSchedule = this.generateSchedule("Pam");             allSchedules.Add("pam", pamSchedule);
-            Dictionary <String, String> pennySchedule = this.generateSchedule("Penny");         allSchedules.Add("penny", pennySchedule);
-            Dictionary <String, String> pierreSchedule = this.generateSchedule("Pierre");       allSchedules.Add("pierre", pierreSchedule);
-            Dictionary <String, String> robinSchedule = this.generateSchedule("Robin");         allSchedules.Add("robin", robinSchedule);
-            Dictionary <String, String> samSchedule = this.generateSchedule("Sam");             allSchedules.Add("sam", samSchedule);
-            Dictionary <String, String> sebastianSchedule = this.generateSchedule("Sebastian"); allSchedules.Add("sebastian", sebastianSchedule);
-            Dictionary <String, String> shaneSchedule = this.generateSchedule("Shane");         allSchedules.Add("shane", shaneSchedule);
-            Dictionary <String, String> vincentSchedule = this.generateSchedule("Vincent");     allSchedules.Add("vincent", vincentSchedule);
-            Dictionary <String, String> willySchedule = this.generateSchedule("Willy");         allSchedules.Add("willy", willySchedule);
-
-            // Console command for displaying a specific schedule
-            Helper.ConsoleCommands.Add("schedule", "Shows the respective NPC's schedule.\n\nUsage: schedule <npcname>\n- npcname: Name of the NPC.", this.showSchedule);
-        }
-
-        // TODO: Display schedule in a more readable format
-        private void showSchedule(string command, string[] args)
-        {
-            this.Monitor.Log(args[0] + "'s schedule:");
-
-            Dictionary<String, String> theSched = null;
-
-            try
+            // By default generate new schedules each week
+            if (Game1.dayOfMonth == 1 || Game1.dayOfMonth == 8 || Game1.dayOfMonth == 15 || Game1.dayOfMonth == 22)
             {
-                theSched = allSchedules[args[0].ToLower()];
-
-                foreach (KeyValuePair<String, String> kvp in theSched)
-                    this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+                Helper.Content.InvalidateCache(@"Characters\schedules\Abigail");
             }
-            catch(KeyNotFoundException e)
-            { 
-                this.Monitor.Log("There is no NPC named " + args[0] + "!");
-            }
-        }
+        }            
 
         // Generates a complete schedule for a character
-        private Dictionary<String, String> generateSchedule(String name)
+        public Dictionary<String, String> generateSchedule(String name)
         {
             Dictionary<String, String> theSchedule = new Dictionary<String, String>();           
 
@@ -292,6 +270,12 @@ namespace randomSchedules
                     theSchedule.Add(hospitalDay, "610 Beach 38 36 2 dick_fish/850 FishShop 5 4 2 \"Strings\\schedules\\Willy:spring_9.000\"/1010 Hospital 12 14 0 \"Strings\\schedules\\Willy:spring_9.001\"/1330 Hospital 4 6 1 \"Strings\\schedules\\Willy:spring_9.002\"/1600 Saloon 17 22 2 \"Strings\\schedules\\Willy:spring_9.003\"/2320 FishShop 4 4 2");
                     break;
             }
+
+            //if (debug)
+            //{
+                foreach (KeyValuePair<String, String> kvp in theSchedule)
+                    this.Monitor.Log(kvp.Key + ": " + kvp.Value);
+            //}
 
             return theSchedule;            
         }
