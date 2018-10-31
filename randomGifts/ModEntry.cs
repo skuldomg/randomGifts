@@ -45,7 +45,7 @@ namespace randomSchedules
                 {
                     saloonDay = weekDays.ElementAt(myRand.Next(0, 6));
                 }
-                while (!saloonDay.Equals(workOutDay));
+                while (saloonDay.Equals(workOutDay));
 
                 if (config.debug)
                     this.Monitor.Log("Work out day is: " + workOutDay + ", Saloon day is: " + saloonDay);
@@ -78,7 +78,7 @@ namespace randomSchedules
                 // Make sure saloon Day isn't on the same day as workout day
                 do               
                     saloonDay = weekDays.ElementAt(myRand.Next(0, 6));                
-                while (!saloonDay.Equals(workOutDay));
+                while (saloonDay.Equals(workOutDay));
 
                 if (config.debug)
                 {
@@ -131,31 +131,31 @@ namespace randomSchedules
                 switch(name)
                 {
                     case "Clint":
-                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Clint", 16, 23, myRand.Next(1, 3)));
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Clint", weekDays.ElementAt(i), 16, 23, myRand.Next(1, 3)));
                         break;
 
                     case "Marnie":
                         // Marnie doesn't work Mondays and Thursdays. Lazy bitch.
                         if (weekDays.ElementAt(i).Equals("Mon") || weekDays.ElementAt(i).Equals("Thu"))
-                            theSchedule.Add(weekDays.ElementAt(i), generateDay("Marnie"));
+                            theSchedule.Add(weekDays.ElementAt(i), generateDay("Marnie", weekDays.ElementAt(i)));
                         else
-                            theSchedule.Add(weekDays.ElementAt(i), generateDay("Marnie", 16, 23, myRand.Next(1, 3)));
+                            theSchedule.Add(weekDays.ElementAt(i), generateDay("Marnie", weekDays.ElementAt(i), 16, 23, myRand.Next(1, 3)));
                         break;
 
                     case "Pierre":
-                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Pierre", 17, 23, myRand.Next(1, 3)));
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Pierre", weekDays.ElementAt(i), 17, 23, myRand.Next(1, 3)));
                         break;
 
                     case "Robin":
-                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Robin", 17, 23, myRand.Next(1, 3)));
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Robin", weekDays.ElementAt(i), 17, 23, myRand.Next(1, 3)));
                         break;
 
                     case "Willy":
-                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Willy", 17, 23, myRand.Next(1, 3)));
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay("Willy", weekDays.ElementAt(i), 17, 23, myRand.Next(1, 3)));
                         break;
 
                     default:
-                        theSchedule.Add(weekDays.ElementAt(i), generateDay(name));
+                        theSchedule.Add(weekDays.ElementAt(i), generateDay(name, weekDays.ElementAt(i)));
                         break;
                 }                
             }
@@ -331,7 +331,7 @@ namespace randomSchedules
         }
 
         // Generates a randomized schedule day
-        private String generateDay(String name, int startTime = -1, int endTime = -1, int noOfEvents = -1)
+        private String generateDay(String name, String dow, int startTime = -1, int endTime = -1, int noOfEvents = -1)
         {            
             String theSchedule = "";
             Random rnd = new Random();
@@ -659,41 +659,107 @@ namespace randomSchedules
             }
 
             // Sort the times in ascending order
-            times = times.OrderBy(i => i).ToList();
+            times = times.OrderBy(i => i).ToList();            
 
             // For shop owners, first define their shop times
             switch (name)
             {
-                case "Clint":
-                    theSchedule += "900 Blacksmith 3 13 2/";
+                case "Clint":                    
+                    times.Insert(0, 9);
+                    locations.Insert(0, "Blacksmith");
+                    positions.Insert(0, new Vector2(3, 13));
+                    directions.Insert(0, 2);
+                    dayEvents++;
                     break;
 
                 case "Marnie":
-                    if (startTime > -1)
-                        theSchedule += "830 AnimalShop 17 5 0/850 AnimalShop 12 14 2/";
+                    if (startTime > -1) {                        
+                        times.Insert(0, 8);
+                        locations.Insert(0, "AnimalShop");
+                        positions.Insert(0, new Vector2(17, 5));
+                        directions.Insert(0, 0);
+                        dayEvents++;
+
+                        times.Insert(1, 9);
+                        locations.Insert(1, "AnimalShop");
+                        positions.Insert(1, new Vector2(12, 14));
+                        directions.Insert(1, 2);
+                        dayEvents++;
+                    }
                     break;
 
-                case "Pierre":
-                    theSchedule += "700 SeedShop 10 20 0/830 SeedShop 4 17 2/";
+                case "Pierre":                    
+                    times.Insert(0, 7);
+                    locations.Insert(0, "SeedShop");
+                    positions.Insert(0, new Vector2(10, 20));
+                    directions.Insert(0, 0);
+                    dayEvents++;
+
+                    times.Insert(1, 8);
+                    locations.Insert(1, "SeedShop");
+                    positions.Insert(1, new Vector2(4, 17));
+                    directions.Insert(1, 2);
+                    dayEvents++;
                     break;
 
-                case "Robin":
-                    theSchedule += "800 ScienceHouse 8 18 2/";
+                case "Robin":                    
+                    times.Insert(0, 8);
+                    locations.Insert(0, "ScienceHouse");
+                    positions.Insert(0, new Vector2(8, 18));
+                    directions.Insert(0, 2);
+                    dayEvents++;
                     break;
 
-                case "Willy":
-                    theSchedule += "610 Beach 38 36 2 dick_fish/850 FishShop 5 4 2/";
+                case "Willy":                    
+                    times.Insert(0, 6);
+                    locations.Insert(0, "Beach");
+                    positions.Insert(0, new Vector2(38, 36));
+                    directions.Insert(0, 2); // TODO: animation
+                    dayEvents++;
+
+                    times.Insert(1, 9);
+                    locations.Insert(1, "FishShop");
+                    positions.Insert(1, new Vector2(5, 4));
+                    directions.Insert(1, 2);
+                    dayEvents++;
                     break;
             }
 
-            // Pierce together today's events
+            // Now we have the complete schedule in our lists
+            // Saloon day: If it's saloon day, take out events between 17 and 22 and insert saloon positions
+            if(dow.Equals(saloonDay))
+            {
+                if (config.debug)
+                    this.Monitor.Log("Saloon Day! Removing events that clash with saloon time...");
+
+                for(int i=0; i<times.Count; i++)
+                {
+                    if(times.ElementAt(i) >= 17 && times.ElementAt(i) <= 22)
+                    {
+                        if (config.debug)
+                            this.Monitor.Log("... removed event at "+times.ElementAt(i));
+
+                        times.RemoveAt(i);
+                        locations.RemoveAt(i);
+                        positions.RemoveAt(i);
+                        directions.RemoveAt(i);
+                        dayEvents--;
+                        i--;                       
+                    }
+                }
+
+                times.Add(17);
+                locations.Add("Saloon");
+                positions.Add(getPositionOnMap("Saloon", name));
+                directions.Add(0);
+                dayEvents++;
+            }
+
+            // Pierce together today's events and add sleep times
             for (int i=0; i<dayEvents; i++)
             {
-                // TODO: Cross-check time and location and generate something different if unfitting (ie. saloon at 10 in the morning)
-
-                
+                // TODO: Cross-check time and location and generate something different if unfitting (ie. saloon at 10 in the morning)                
                 // TODO: bool isOutside = isLocationOutside(locations.ElementAt(i)); --> for cross checking animations like football/flute etc
-
                 
                 // Sometimes add an animation
                 int animChance = myRand.Next(1, 100);
@@ -812,7 +878,7 @@ namespace randomSchedules
 
                     case "George": // TODO: Watch TV
                         if (i == (dayEvents - 1))
-                            theSchedule += "/" + sleepTime + "00 JoushHouse 3 5 0";
+                            theSchedule += "/" + sleepTime + "00 JoshHouse 3 5 0";
                         break;
 
                     case "Jas":
