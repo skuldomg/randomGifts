@@ -727,7 +727,7 @@ namespace randomSchedules
 
             // Now we have the complete schedule in our lists
             // Saloon day: If it's saloon day, take out events between 17 and 22 and insert saloon positions
-            if(dow.Equals(saloonDay))
+            if(dow.Equals(saloonDay) && (!name.Equals("Evelyn") && !name.Equals("George") && !name.Equals("Jas") && !name.Equals("Vincent")))
             {
                 if (config.debug)
                     this.Monitor.Log("Saloon Day! Removing events that clash with saloon time...");
@@ -748,10 +748,20 @@ namespace randomSchedules
                     }
                 }
 
-                times.Add(17);
-                locations.Add("Saloon");
-                positions.Add(getPositionOnMap("Saloon", name));
-                directions.Add(0);
+                if(!name.Equals("Linus")) { 
+                    times.Add(17);
+                    locations.Add("Saloon");
+                    positions.Add(getPositionOnMap("Saloon", name));
+                    directions.Add(myRand.Next(0, 4));
+                }
+                else if(name.Equals("Linus"))
+                {
+                    times.Add(17);
+                    locations.Add("Town");
+                    positions.Add(new Vector2(47, 71));
+                    directions.Add(2);
+                }
+
                 dayEvents++;
             }
 
@@ -879,6 +889,11 @@ namespace randomSchedules
                     case "George": // TODO: Watch TV
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 JoshHouse 3 5 0";
+                        break;
+
+                    case "Harvey":
+                        if (i == (dayEvents - 1))
+                            theSchedule += "/" + sleepTime + "00 HarveyRoom 13 4 1";
                         break;
 
                     case "Jas":
