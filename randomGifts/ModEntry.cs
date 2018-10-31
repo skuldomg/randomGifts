@@ -33,6 +33,13 @@ namespace randomSchedules
             // Editor for schedule files
             helper.Content.AssetEditors.Add(new scheduleEditor(this, this.Monitor));
 
+            // First work out day
+            // Generate work out day, everyone's favorite!
+            workOutDay = weekDays.ElementAt(myRand.Next(0, 6));
+
+            if (config.debug)
+                this.Monitor.Log("Work out day is: " + workOutDay);
+
             TimeEvents.AfterDayStarted += AfterDayStarted;
 
             // Console command for displaying a specific schedule            
@@ -55,17 +62,47 @@ namespace randomSchedules
         private void AfterDayStarted(object sender, EventArgs e)
         {
             DisposableList<NPC> allNPCs = Utility.getAllCharacters();
-            
-            // Generate work out day, everyone's favorite!
-            workOutDay = weekDays.ElementAt(myRand.Next(0, 6));
-
-            if (config.debug)
-                this.Monitor.Log("Work out day is: " + workOutDay);
 
             // By default generate new schedules each week
             if (Game1.dayOfMonth == 1 || Game1.dayOfMonth == 8 || Game1.dayOfMonth == 15 || Game1.dayOfMonth == 22)
             {
+                // Generate work out day, everyone's favorite!
+                workOutDay = weekDays.ElementAt(myRand.Next(0, 6));
+
+                if (config.debug)
+                    this.Monitor.Log("Work out day is: " + workOutDay);
+
+                // TODO: Pub day
+                // TODO: Saloon only in the evening
+
                 Helper.Content.InvalidateCache(@"Characters\schedules\Abigail");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Alex");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Caroline");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Clint");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Demetrius");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Elliott");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Emily");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Evelyn");
+                Helper.Content.InvalidateCache(@"Characters\schedules\George");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Haley");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Harvey");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Jas");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Jodi");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Kent");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Leah");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Lewis");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Linus");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Marnie");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Maru");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Pam");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Penny");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Pierre");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Robin");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Sam");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Sebastian");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Shane");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Vincent");
+                Helper.Content.InvalidateCache(@"Characters\schedules\Willy");
             }
         }            
 
