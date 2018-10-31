@@ -8,42 +8,48 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace randomSchedules
-{
-    // TODO: Actually add the schedules to the game
-    // TODO: Save schedules to json files and replace them with content patcher each week -- only for beta / SMAPI 2.8 atm
-
-
+{    
     public class ModEntry : Mod
     {
         private ModConfig config;
         public List<String> weekDays = new List<String>();
-        public String workOutDay = "";
+        public String workOutDay = "", saloonDay = "";
         Random myRand;
         Dictionary<String, Dictionary<String, String>> allSchedules;
 
         public override void Entry(IModHelper helper)
         {
-            myRand = new Random();
-            // For getting a specific schedule
-            allSchedules = new Dictionary<String, Dictionary<String, String>>();
+            myRand = new Random();            
 
             this.config = this.Helper.ReadConfig<ModConfig>();
             weekDays.Add("Mon"); weekDays.Add("Tue"); weekDays.Add("Wed"); weekDays.Add("Thu"); weekDays.Add("Fri"); weekDays.Add("Sat"); weekDays.Add("Sun");
 
             // Editor for schedule files
-            helper.Content.AssetEditors.Add(new scheduleEditor(this, this.Monitor));
-
-            // First work out day
-            // Generate work out day, everyone's favorite!
-            workOutDay = weekDays.ElementAt(myRand.Next(0, 6));
-
-            if (config.debug)
-                this.Monitor.Log("Work out day is: " + workOutDay);
+            helper.Content.AssetEditors.Add(new scheduleEditor(this, this.Monitor));           
 
             TimeEvents.AfterDayStarted += AfterDayStarted;
 
             // Console command for displaying a specific schedule            
-            Helper.ConsoleCommands.Add("get_schedule", "Shows the respective NPC's actual schedule for the day of month.\n\nUsage: get_schedule <npcname> <dayofmonth>\n- npcname: Name of the NPC\n- dayofmonth: The day of month.", this.getSchedule);                        
+            Helper.ConsoleCommands.Add("get_schedule", "Shows the respective NPC's actual schedule for the day of month.\n\nUsage: get_schedule <npcname> <dayofmonth>\n- npcname: Name of the NPC\n- dayofmonth: The day of month.", this.getSchedule);
+
+            /*if(Context.IsWorldReady) {
+
+                if (config.debug)
+                    this.Monitor.Log("World is ready!\n");
+*/
+                // First work out and saloon day        
+                workOutDay = weekDays.ElementAt(myRand.Next(0, 6));
+
+                // Make sure saloon Day isn't on the same day as workout day
+                do
+                {
+                    saloonDay = weekDays.ElementAt(myRand.Next(0, 6));
+                }
+                while (!saloonDay.Equals(workOutDay));
+
+                if (config.debug)
+                    this.Monitor.Log("Work out day is: " + workOutDay + ", Saloon day is: " + saloonDay);
+  //          }
         }
 
         private void getSchedule(string command, string[] args)
@@ -69,12 +75,18 @@ namespace randomSchedules
                 // Generate work out day, everyone's favorite!
                 workOutDay = weekDays.ElementAt(myRand.Next(0, 6));
 
+                // Make sure saloon Day isn't on the same day as workout day
+                do               
+                    saloonDay = weekDays.ElementAt(myRand.Next(0, 6));                
+                while (!saloonDay.Equals(workOutDay));
+
                 if (config.debug)
-                    this.Monitor.Log("Work out day is: " + workOutDay);
-
-                // TODO: Pub day
-                // TODO: Saloon only in the evening
-
+                {
+                    this.Monitor.Log("It's Monday, new schedules for everyone!");
+                    this.Monitor.Log("Work out day is: " + workOutDay + ", Saloon day is: " + saloonDay);
+                    // TODO: Implement saloon day
+                }                
+                
                 Helper.Content.InvalidateCache(@"Characters\schedules\Abigail");
                 Helper.Content.InvalidateCache(@"Characters\schedules\Alex");
                 Helper.Content.InvalidateCache(@"Characters\schedules\Caroline");
@@ -148,8 +160,7 @@ namespace randomSchedules
                 }                
             }
 
-            // TODO: Just generate this once, not every time schedules get randomized - same for workout day (?)
-
+            // TODO: Just generate this once, not every time schedules get randomized
             int dow = myRand.Next(1, 28);
             String season = "";
             int s = myRand.Next(1, 4);
@@ -308,11 +319,13 @@ namespace randomSchedules
                     break;
             }
 
-            //if (debug)
-            //{
+            if (config.debug)
+            {
                 foreach (KeyValuePair<String, String> kvp in theSchedule)
                     this.Monitor.Log(kvp.Key + ": " + kvp.Value);
-            //}
+
+                this.Monitor.Log("\n");
+            }
 
             return theSchedule;            
         }
@@ -329,14 +342,13 @@ namespace randomSchedules
 
             // First decide how many different elements the day's schedule should have
             int dayEvents;
-
-            // TODO: Just do noOfEvents = myRand.Next(2, 5) in the constructor
+            
             if (noOfEvents == -1)
                 dayEvents = myRand.Next(2, 5);
             else
                 dayEvents = noOfEvents;
 
-            // Now generate different times, locations, positions and directions
+            // Now generate different times, locations, and positions
             List<int> times = new List<int>();            
             List<string> locations = new List<string>();
             List<Vector2> positions = new List<Vector2>();
@@ -347,6 +359,7 @@ namespace randomSchedules
             foreach(GameLocation loc in Game1.locations)
                 allLocs.Add(loc.Name);
 
+            // For determining if railroad locations are accessible
             SDate date = SDate.Now();
             SDate earthquake = new SDate(3, "summer", 1);
 
@@ -550,6 +563,7 @@ namespace randomSchedules
                 }
             }
 
+            // Restrict locations for Evelyn, George and Linus
             if(name.Equals("Evelyn"))
             {                
                 allLocs.Clear();
@@ -639,8 +653,8 @@ namespace randomSchedules
                 // TODO: Remove time/location combinations that are not plausible and configure per-character plausible locations
                 // TODO: Combine locations and follow-up locations -> bathhouse entry -> bathhouse locker -> bathhouse pool
                 times.Add(theTime);
-                locations.Add(theLoc);
-                positions.Add(getPositionOnMap(locations.ElementAt(i)));
+                locations.Add(theLoc);                
+                positions.Add(getPositionOnMap(theLoc, name));
                 directions.Add(myRand.Next(0, 4));
             }
 
@@ -674,14 +688,48 @@ namespace randomSchedules
 
             // Pierce together today's events
             for (int i=0; i<dayEvents; i++)
-            { 
-                theSchedule += times.ElementAt(i) + "00 " + locations.ElementAt(i) + " " + positions.ElementAt(i).X + " " + positions.ElementAt(i).Y + " " + directions.ElementAt(i);
+            {
+                // TODO: Cross-check time and location and generate something different if unfitting (ie. saloon at 10 in the morning)
 
+                
                 // TODO: bool isOutside = isLocationOutside(locations.ElementAt(i)); --> for cross checking animations like football/flute etc
 
+                
                 // Sometimes add an animation
                 int animChance = myRand.Next(1, 100);
-                int sleepTime = myRand.Next(times.ElementAt(times.Count - 1)+1, 24);                
+
+                // Add sleep times
+                int sleepTime = myRand.Next(times.ElementAt(times.Count - 1)+1, 24);
+
+                // TODO: Check here if time and location is plausible. If not, recalculate.
+                switch(locations.ElementAt(i))
+                {
+                    case "Saloon":
+                        // It's okay for Shane or Pam to be in the Saloon at all times
+                        if (!name.Equals("Pam") && !name.Equals("Shane"))
+                        {
+                            if(times.ElementAt(i) < 16)
+                            {
+                                if (config.debug)
+                                    this.Monitor.Log(name + " is in the Saloon too early! Finding new location.");
+
+                                // Recalculate location and position
+                                while(locations.ElementAt(i).Equals("Saloon"))
+                                {
+                                    String theLoc = allLocs.ElementAt(myRand.Next(0, allLocs.Count));
+                                    locations[i] = theLoc;
+                                    positions[i] = getPositionOnMap(theLoc, name);
+                                }
+
+                                if (config.debug)
+                                    this.Monitor.Log("New location is " + locations[i]);
+                            }
+                        }                     
+
+                        break;
+                }
+
+                theSchedule += times.ElementAt(i) + "00 " + locations.ElementAt(i) + " " + positions.ElementAt(i).X + " " + positions.ElementAt(i).Y + " " + directions.ElementAt(i);
 
                 switch (name)
                 {
@@ -690,19 +738,19 @@ namespace randomSchedules
                     case "Abigail":
                         // Originally she seems to have about 1.5% flute animation chance (in 2 out of 55 single events)
                         // That seems a bit harsh, let's go with about 10%
-                        if (animChance <= 10)
-                            theSchedule += " abigail_flute";
-
-                        // Add a day end event
+                        // TODO: Only outside / in her room maybe
+                        //if (animChance <= 10)
+                        //    theSchedule += " abigail_flute";
+                        
                         if(i == (dayEvents - 1))
                             theSchedule += "/"+sleepTime+"00 SeedShop 1 9 3";
                         break;
 
                     case "Alex":
-                        if ((locations.ElementAt(i).Equals("Town") || locations.ElementAt(i).Equals("Beach") || locations.ElementAt(i).Equals("Mountain") || locations.ElementAt(i).Equals("Forest") || locations.ElementAt(i).Equals("BusStop") || locations.ElementAt(i).Equals("Railroad") || locations.ElementAt(i).Equals("Backwoods")) && animChance <= 35)
-                            theSchedule += " alex_football";
-                        else if (animChance >= 86)
-                            theSchedule += " alex_lift_weights";
+                        //if ((locations.ElementAt(i).Equals("Town") || locations.ElementAt(i).Equals("Beach") || locations.ElementAt(i).Equals("Mountain") || locations.ElementAt(i).Equals("Forest") || locations.ElementAt(i).Equals("BusStop") || locations.ElementAt(i).Equals("Railroad") || locations.ElementAt(i).Equals("Backwoods")) && animChance <= 35)
+                        //    theSchedule += " alex_football";
+                        //else if (animChance >= 86)
+                        //    theSchedule += " alex_lift_weights";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 JoshHouse 21 4 1";
@@ -710,8 +758,8 @@ namespace randomSchedules
 
                     // TODO: Check if _read animation is sitting down
                     case "Caroline":
-                        if (animChance <= 5)
-                            theSchedule += " caroline_read";
+                        //if (animChance <= 5)
+                        //    theSchedule += " caroline_read";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 SeedShop 25 4 1";
@@ -719,28 +767,28 @@ namespace randomSchedules
 
                     // TODO: _hammer animation
                     case "Clint":
-                        if (locations.ElementAt(i).Equals("Saloon") && animChance <= 25)
-                            theSchedule += " clint_dance";
+                        //if (locations.ElementAt(i).Equals("Saloon") && animChance <= 25)
+                        //    theSchedule += " clint_dance";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 Blacksmith 10 4 1";
                         break;
                         
                     case "Demetrius":
-                        if (animChance <= 5)
-                            theSchedule += " demetrius_read";
-                        else if (animChance >= 88)
-                            theSchedule += " demetrius_notes";
+                        //if (animChance <= 5)
+                        //    theSchedule += " demetrius_read";
+                        //else if (animChance >= 88)
+                        //    theSchedule += " demetrius_notes";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 ScienceHouse 19 4 11";
                         break;
                         
                     case "Elliott":
-                        if (locations.ElementAt(i).Equals("Saloon") && animChance >= 75)
-                            theSchedule += " elliott_drink";
-                        else if (animChance <= 5)
-                            theSchedule += " elliott_read";
+                        //if (locations.ElementAt(i).Equals("Saloon") && animChance >= 75)
+                        //    theSchedule += " elliott_drink";
+                        //else if (animChance <= 5)
+                        //    theSchedule += " elliott_read";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 ElliottHouse 13 4 1";
@@ -755,8 +803,8 @@ namespace randomSchedules
                         // TODO: Sleep times
                         //sleepTime = myRand.Next(times.ElementAt(times.Count - 1) + 1, 22);
 
-                        if (animChance <= 10)
-                            theSchedule += " evelyn_sit_left"; // TODO: Check for direction
+                        //if (animChance <= 10)
+                        //    theSchedule += " evelyn_sit_left"; // TODO: Check for direction
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 JoshHouse 2 5 1";
@@ -768,10 +816,10 @@ namespace randomSchedules
                         break;
 
                     case "Jas":
-                        if (animChance <= 5)
-                            theSchedule += " jas_read";
-                        else if (animChance >= 90)
-                            theSchedule += " jas_jumprope";
+                        //if (animChance <= 5)
+                        //    theSchedule += " jas_read";
+                        //else if (animChance >= 90)
+                        //    theSchedule += " jas_jumprope";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 AnimalShop 1 7 3";
@@ -791,8 +839,8 @@ namespace randomSchedules
                         break;
 
                     case "Leah":
-                        if (animChance <= 5)
-                            theSchedule += " leah_draw";
+                        //if (animChance <= 5)
+                        //    theSchedule += " leah_draw";
 
                         // TODO: leah_sculpt
 
@@ -802,8 +850,8 @@ namespace randomSchedules
 
                     case "Lewis":
                         // TODO: lewis_garden
-                        if (locations.ElementAt(i).Equals("Saloon") && animChance <= 50)
-                            theSchedule += " lewis_drink";
+                        //if (locations.ElementAt(i).Equals("Saloon") && animChance <= 50)
+                        //    theSchedule += " lewis_drink";
 
                         // Lewis sleeps at Marnie's place at roughly 1/28th of the days (ie. once a month)
                         if (i == (dayEvents - 1)) {
@@ -822,8 +870,8 @@ namespace randomSchedules
 
                     case "Marnie":
                         // TODO: Either make one day saloon day or make all grown ups more likely to hang out at the saloon at night
-                        if (locations.ElementAt(i).Equals("Saloon") && animChance <= 50)
-                            theSchedule += " marnie_drink";
+                        //if (locations.ElementAt(i).Equals("Saloon") && animChance <= 50)
+                        //    theSchedule += " marnie_drink";
 
                         // Marnie sleeps at Lewis' place at roughly 1/28th of the days (ie. once a month)
                         // At these chances, the case that there is a day where Lewis sleeps at Marnie's and Marnie sleeps at Lewis' are 1/784, so roughly 0.13%. Good enough.
@@ -850,8 +898,8 @@ namespace randomSchedules
 
                     case "Penny":
                         // TODO: penny_dishes, penny_sit_down
-                        if (animChance <= 5)
-                            theSchedule += " penny_read";
+                        //if (animChance <= 5)
+                        //    theSchedule += " penny_read";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 Trailer 4 9 1";
@@ -873,12 +921,12 @@ namespace randomSchedules
 
                     // TODO: Joja Mart work
                     case "Sam":
-                        if (animChance >= 90)
-                            theSchedule += " sam_gameboy";
-                        else if (locations.ElementAt(i).Equals("SamHouse") && animChance <= 50)
-                            theSchedule += " sam_guitar";
-                        else if (locations.ElementAt(i).Equals("Town") && animChance >= 60 && animChance <= 90)
-                            theSchedule += " sam_skateboarding";
+                        //if (animChance >= 90)
+                        //    theSchedule += " sam_gameboy";
+                        //else if (locations.ElementAt(i).Equals("SamHouse") && animChance <= 50)
+                        //    theSchedule += " sam_guitar";
+                        //else if (locations.ElementAt(i).Equals("Town") && animChance >= 60 && animChance <= 90)
+                        //    theSchedule += " sam_skateboarding";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 SamHouse 22 13 1";
@@ -887,8 +935,8 @@ namespace randomSchedules
                     case "Sebastian":
                         // TODO: Make Sebastian prefer his room
                         // TODO: in room sebastian_computer
-                        if((locations.ElementAt(i).Equals("Town") || locations.ElementAt(i).Equals("Saloon") || locations.ElementAt(i).Equals("Beach") || locations.ElementAt(i).Equals("Mountain") || locations.ElementAt(i).Equals("Forest") || locations.ElementAt(i).Equals("BusStop") || locations.ElementAt(i).Equals("Railroad") || locations.ElementAt(i).Equals("Backwoods")) && animChance <= 15)
-                            theSchedule += " sebastian_smoking";
+                        //if((locations.ElementAt(i).Equals("Town") || locations.ElementAt(i).Equals("Saloon") || locations.ElementAt(i).Equals("Beach") || locations.ElementAt(i).Equals("Mountain") || locations.ElementAt(i).Equals("Forest") || locations.ElementAt(i).Equals("BusStop") || locations.ElementAt(i).Equals("Railroad") || locations.ElementAt(i).Equals("Backwoods")) && animChance <= 15)
+                        //    theSchedule += " sebastian_smoking";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 SebastianRoom 11 9 1";
@@ -898,18 +946,18 @@ namespace randomSchedules
                     case "Shane":
                         // TODO: Joja Mart work
                         // TODO: don't play drink animation after his final heart event
-                        if (locations.ElementAt(i).Equals("Saloon") && animChance >= 20)
-                            theSchedule += " shane_drink";
+                        //if (locations.ElementAt(i).Equals("Saloon") && animChance >= 20)
+                        //    theSchedule += " shane_drink";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 AnimalShop 27 4 1";
                         break;
 
                     case "Vincent":
-                        if (locations.ElementAt(i).Equals("SamHouse") && animChance <= 40)
-                            theSchedule += " vincent_play";
-                        else if (locations.ElementAt(i).Equals("Beach") && animChance >= 50)
-                            theSchedule += " vincent_beach";
+                        //if (locations.ElementAt(i).Equals("SamHouse") && animChance <= 40)
+                        //    theSchedule += " vincent_play";
+                        //else if (locations.ElementAt(i).Equals("Beach") && animChance >= 50)
+                        //    theSchedule += " vincent_beach";
 
                         if (i == (dayEvents - 1))
                             theSchedule += "/" + sleepTime + "00 SamHouse 8 22 3";
@@ -930,38 +978,70 @@ namespace randomSchedules
             return theSchedule;
         }
 
-        // Generates a valid position for the given map
-        // TODO: pass character name as argument in order to check for character based impossible locations on maps (ie. private areas for AnimalShop etc)
-        private Vector2 getPositionOnMap(string map)
-        {
+        // Generates a valid position for the given map and character        
+        // Returns a string containing the X and Y position as well as the facing direction and possibly an animation, ie. '23 59 2 clint_hammer'
+        private Vector2 getPositionOnMap(string map, string charName)
+        {            
             GameLocation theLoc = Game1.getLocationFromName(map);
             Vector2 thePos = theLoc.getRandomTile();
 
-            bool posFound = false;
+             bool posFound = false;
 
-            while(!posFound)
-            {
-                switch (map)
-                {
+             while(!posFound)
+             {
+                 switch (map)
+                 {
                     // TODO: Edit a bit to more plausible locations for a human
                     // TODO: Check if occupied
-                    case "Town":
-                        if ((thePos.X >= 12 && thePos.X <= 65) && (thePos.Y >= 10 && thePos.Y <= 39))
+                    case "AdventureGuild":
+                        if ((thePos.X == 7 && thePos.Y == 11)
+                            || (thePos.X == 9 && thePos.Y == 12)
+                            || (thePos.X == 10 && thePos.Y == 15)
+                            || (thePos.X == 9 && thePos.Y == 16)
+                            || (thePos.X == 7 && thePos.Y == 12)
+                            || (thePos.X == 6 && thePos.Y == 13))
                             posFound = true;
-                        else if ((thePos.X >= 4 && thePos.X <= 110) && (thePos.Y >= 54 && thePos.Y <= 96))
-                            posFound = true;
-
-                        if (posFound && ((thePos.X >= 88 && thePos.X <= 106) && thePos.Y >= 63 && thePos.Y <= 75))
-                            posFound = false;
                         break;
 
-                    default:
-                        posFound = true;
-                        break;
-                }
+                    case "AnimalShop":
+                        if (((thePos.Y == 16 && (thePos.X == 3 || thePos.X == 5 || thePos.X == 7 || thePos.X == 11 || thePos.X == 13 || thePos.X == 14))))
+                            posFound = true;
 
-                thePos = theLoc.getRandomTile();
-            }            
+                        if (charName.Equals("Marnie")
+                            && (((thePos.X >= 14 && thePos.X <= 17) && (thePos.Y >= 5 && thePos.Y <= 8))
+                            || (thePos.Y == 15 && (thePos.X == 24 || thePos.X == 25 || thePos.X == 26 || thePos.X == 27 || thePos.X == 28 || thePos.X == 29))))
+                            posFound = true;
+                        else if (charName.Equals("Shane")
+                            && ((thePos.X == 22 && thePos.Y == 6)
+                            || ((thePos.X >= 23 && thePos.X <= 26) && (thePos.Y >= 7 && thePos.Y <= 9))))
+                            posFound = true;
+                        else if (charName.Equals("Jas")
+                            && (((thePos.X >= 3 && thePos.X <= 6) && (thePos.Y == 5 || thePos.Y == 6))
+                            || (thePos.X == 4 && thePos.Y == 8)
+                            || (thePos.X == 7 && thePos.Y == 5)
+                            || (thePos.X == 8 && thePos.Y == 6)
+                            || (thePos.X == 7 && thePos.Y == 7)))
+                            posFound = true;
+                        break;
+
+                     case "Town":
+                         if ((thePos.X >= 12 && thePos.X <= 65) && (thePos.Y >= 10 && thePos.Y <= 39))
+                             posFound = true;
+                         else if ((thePos.X >= 4 && thePos.X <= 110) && (thePos.Y >= 54 && thePos.Y <= 96))
+                             posFound = true;
+
+                         if (posFound && ((thePos.X >= 88 && thePos.X <= 106) && thePos.Y >= 63 && thePos.Y <= 75))
+                             posFound = false;
+                         break;
+
+                     default:
+                         posFound = true;
+                         break;
+                 }
+
+                 thePos = theLoc.getRandomTile();
+             }
+
 
             return thePos;
         }
