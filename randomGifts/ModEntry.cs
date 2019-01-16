@@ -386,7 +386,7 @@ namespace randomSchedules
                     case "Submarine":
                     case "Summit":
                     case "Farm": // TODO: Maybe at a very low chance?                                        
-                    case "Mine": // TODO: Only for certain characters?
+                    //case "Mine": // TODO: Only for certain characters?
                     case "BugLand":
                     case "Desert": // TODO: Only for Sandy, maybe Emily?
                     case "SandyHouse": // TODO: Only for Emily, very low chance for others?
@@ -432,6 +432,14 @@ namespace randomSchedules
 
                     case "ManorHouse":
                         if(!name.Equals("Lewis") && !name.Equals("Marnie"))
+                        {
+                            allLocs.RemoveAt(i);
+                            i--;
+                        }
+                        break;
+
+                    case "Mine":
+                        if(!name.Equals("Abigail") && !name.Equals("Linus"))
                         {
                             allLocs.RemoveAt(i);
                             i--;
@@ -1090,7 +1098,7 @@ namespace randomSchedules
 
                         if (charName.Equals("Marnie")
                             && (((thePos.X >= 14 && thePos.X <= 17) && (thePos.Y >= 5 && thePos.Y <= 8))
-                            || (thePos.Y == 15 && (thePos.X == 24 || thePos.X == 25 || thePos.X == 26 || thePos.X == 27 || thePos.X == 28 || thePos.X == 29))))
+                            || (thePos.Y == 15 && (thePos.X >= 24 && thePos.X <= 29))))
                             posFound = true;
                         else if (charName.Equals("Shane")
                             && ((thePos.X == 22 && thePos.Y == 6)
@@ -1104,6 +1112,24 @@ namespace randomSchedules
                             || (thePos.X == 7 && thePos.Y == 7)))
                             posFound = true;
                         break;
+
+                    case "ArchaeologyHouse":
+                        if ((thePos.Y == 10 && (thePos.X == 2 || thePos.X == 6 || thePos.X == 7))
+                            || (thePos.Y == 5 && ((thePos.X >= 9 && thePos.X <= 13) || (thePos.X >= 15 && thePos.X <= 17) || (thePos.X >= 19 && thePos.X <= 21)))
+                            || (thePos.Y == 9 && ((thePos.X >= 11 && thePos.X <= 13) || (thePos.X >= 15 && thePos.X <= 19)))
+                            || (thePos.X == 10 && ((thePos.Y >= 10 && thePos.Y <= 13))))
+                            posFound = true;
+                        break;
+
+                    case "Backwoods":
+                        if ((thePos.Y == 13 && ((thePos.X >= 37 && thePos.X <= 48) || (thePos.X >= 21 && thePos.X <= 25)))
+                            || (thePos.Y == 15 && ((thePos.X >= 28 && thePos.X <= 37) || thePos.X == 16 || thePos.X == 17))
+                            || (thePos.Y == 12 && (thePos.X >= 27 && thePos.X <= 35))
+                            || (thePos.X == 15 && (thePos.Y >= 23 && thePos.Y <= 26)))
+                            posFound = true;
+                        break;
+
+
 
                      case "Town":
                          if ((thePos.X >= 12 && thePos.X <= 65) && (thePos.Y >= 10 && thePos.Y <= 39))
